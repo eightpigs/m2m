@@ -1,0 +1,28 @@
+plugins {
+  id 'org.jetbrains.intellij' version '0.4.7'
+}
+
+group 'io.eightpigs'
+version '1.0-SNAPSHOT'
+
+// See https://github.com/JetBrains/gradle-intellij-plugin/
+intellij {
+  version '2019.1'
+}
+patchPluginXml {
+  changeNotes """
+      Add change notes here.<br>
+      <em>most HTML tags may be used</em>"""
+}
+
+repositories {
+  mavenLocal()
+  maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+  mavenCentral()
+  jcenter()
+}
+
+dependencies {
+  compile group: 'org.yaml', name: 'snakeyaml', version: '1.24'
+  compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.15'
+}

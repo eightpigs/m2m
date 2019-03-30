@@ -1,0 +1,45 @@
+database:
+  type: mysql
+  host: "127.0.0.1"
+  port: 3306
+  user: root
+  password: root
+  name: shadow
+  params: useInformationSchema=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&autoReconnect=true
+
+style:
+  indent: 4
+  indentStyle: space
+
+package:
+  base: io.eightpigs.test.model
+  group:
+    user: user
+    order: order
+
+tables:
+  - users
+
+info:
+  author: eightpigs <eightpigs@outlook.com>
+  date: ${datetime}
+
+classes:
+  - tableName: "*"
+    comment: true
+    constructors:
+      full: false
+      empty: false
+    annotations:
+      - '@DBTable(name="${tableName}")'
+    imports:
+      - io.eightpigs.tools.mybatis.annotation.DBTable
+    properties:
+      - name: "*"
+        getter: true
+        setter: true
+        comment: true
+        annotations:
+          - '@DBField(name="${fieldName}")'
+        imports:
+          - io.eightpigs.tools.mybatis.annotation.DBField
