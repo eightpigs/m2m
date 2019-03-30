@@ -11,10 +11,15 @@ import java.util.List;
 public class Property {
 
     /**
-     * property name.
-     * If empty, it represents all property.
+     * column name.
+     * If *, it represents all property.
      */
-    private String name;
+    private String columnName;
+
+    /**
+     * The generated property name, if empty, by default hump style.
+     */
+    private String propertyName;
 
     /**
      * Whether to generate a setter.
@@ -41,12 +46,20 @@ public class Property {
      */
     private List<String> imports;
 
-    public String getName() {
-        return name;
+    public String getColumnName() {
+        return columnName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
     }
 
     public Boolean getGetter() {

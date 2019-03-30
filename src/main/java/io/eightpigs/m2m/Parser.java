@@ -1,7 +1,9 @@
 package io.eightpigs.m2m;
 
 import io.eightpigs.m2m.database.IDatabase;
+import io.eightpigs.m2m.model.config.Class;
 import io.eightpigs.m2m.model.config.Config;
+import io.eightpigs.m2m.model.config.Property;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
 import org.yaml.snakeyaml.Yaml;
@@ -9,7 +11,12 @@ import org.yaml.snakeyaml.Yaml;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * table to java object parser.
@@ -41,6 +48,11 @@ public class Parser {
      */
     private Path configFilePath;
 
+    /**
+     * Wildcard symbol in configuration.
+     */
+    private static final String WILDCARD = "*";
+
     private Parser() {
     }
 
@@ -61,26 +73,64 @@ public class Parser {
         return null;
     }
 
-    private Config getConfig() throws Exception {
+    private Config loadConfig() throws Exception {
         byte[] bytes = Files.readAllBytes(configFilePath);
         Yaml yaml = new Yaml();
         return yaml.loadAs(new String(bytes), Config.class);
     }
 
     public void process() throws Exception {
-        Config config = getConfig();
+        Config config = loadConfig();
         IDatabase db = Vars.DATABASE_MAP.get(config.getDatabase().getType());
         List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
-        for (Table table : tables) {
-            System.out.println(table.getName());
-            for (Column column : table.getColumns()) {
-                System.out.println(column.getName() + " - " + column.getType());
+        if (tables.size() > 0) {
+            List<ClassInfo> classInfos = merge(tables, config, db);
+            for (ClassInfo classInfo : classInfos) {
+                String content = classInfo.toString();
+                // @TODO Write to file.
             }
         }
+    }
 
-        // @TODO 1. get class
-        // @TODO 2. merge config to class
-        // @TODO 3. get java file content
+    /**
+     * Merge database information (tables, columns) and configuration information.
+     *
+     * @param tables All tables that need to be parsed.
+     * @param config Configuration information in the configuration file.
+     * @param db     database instance.
+     * @return Merge completed class information.
+     * @throws Exception If there is no global configuration information (WILDCARD config).
+     */
+    private List<ClassInfo> merge(List<Table> tables, Config config, IDatabase db) throws Exception {
+        Map<String, Class> classMap = Arrays.stream(config.getClasses()).collect(Collectors.toMap(Class::getTableName, Function.identity()));
+        List<ClassInfo> classInfos = new ArrayList<>();
+        for (Table table : tables) {
+            Class classConfig = (Class) getConfig(table.getName(), classMap);
+            if (classConfig == null) {
+                throw new Exception("The class configuration information corresponding to the table was not found.");
+            } else {
+                Map<String, Property> propertyMap = classConfig.getProperties().stream().collect(Collectors.toMap(Property::getColumnName, Function.identity()));
+                ClassInfo classInfo = new ClassInfo(classConfig, table, new ArrayList<>());
+                classInfos.add(classInfo);
+                for (Column column : table.getColumns()) {
+                    Property propertyConfig = (Property) getConfig(column.getName(), propertyMap);
+                    String[] typeAndImport = db.getTypeAndImport(column);
+                    classInfo.getProperties().add(new PropertyInfo(propertyConfig, column, typeAndImport));
+                }
+            }
+        }
+        return classInfos;
+    }
+
+    /**
+     * Obtain the corresponding configuration information by table / column name.
+     *
+     * @param name table name / column name.
+     * @param map  config map.
+     * @return Class / Property configuration information or global configuration (wildcard) corresponding to the table / column name.
+     */
+    private Object getConfig(String name, Map map) {
+        return map.containsKey(name) ? map.get(name) : map.get(WILDCARD);
     }
 
     /**
@@ -93,4 +143,76 @@ public class Parser {
         return Files.exists(configFilePath);
     }
 
+    /**
+     * Get code style indented strings.
+     *
+     * @param config config info.
+     * @return Indented string
+     */
+    private String indent(Config config) {
+        if (Vars.INDENT_STYLES.containsKey(config.getStyle().getIndentStyle())) {
+            return Vars.INDENT_STYLES.get(config.getStyle().getIndentStyle()).apply(config.getStyle().getIndent());
+        }
+        return Vars.INDENT_STYLES.get("space").apply(4);
+    }
+}
+
+
+class ClassInfo {
+    private Class config;
+    private Table table;
+    private List<PropertyInfo> properties;
+
+    public ClassInfo(Class config, Table table, List<PropertyInfo> properties) {
+        this.config = config;
+        this.table = table;
+        this.properties = properties;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        // @TODO: class to string -> .java file content
+        return "";
+    }
+
+    public Class getConfig() {
+        return config;
+    }
+
+    public Table getTable() {
+        return table;
+    }
+
+    public List<PropertyInfo> getProperties() {
+        return properties;
+    }
+
+}
+
+class PropertyInfo {
+
+    private Property config;
+
+    private Column column;
+
+    private String[] javaTypeAndImport;
+
+    public PropertyInfo(Property config, Column column, String[] javaTypeAndImport) {
+        this.config = config;
+        this.column = column;
+        this.javaTypeAndImport = javaTypeAndImport;
+    }
+
+    public Property getConfig() {
+        return config;
+    }
+
+    public Column getColumn() {
+        return column;
+    }
+
+    public String[] getJavaTypeAndImport() {
+        return javaTypeAndImport;
+    }
 }

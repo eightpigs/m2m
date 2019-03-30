@@ -1,13 +1,13 @@
 package io.eightpigs.m2m.model.config;
 
 /**
- * info config.
- * author or date.
+ * Configuration information for class documentation comments.
  *
  * @author eightpigs <eightpigs@outlook.com>
  * @date 2019-03-30
  */
 public class Info {
+
     /**
      * creator.
      */

@@ -35,7 +35,7 @@ classes:
     imports:
       - io.eightpigs.tools.mybatis.annotation.DBTable
     properties:
-      - name: "*"
+      - columnName: "*"
         getter: true
         setter: true
         comment: true

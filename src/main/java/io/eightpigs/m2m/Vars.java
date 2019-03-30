@@ -60,8 +60,8 @@ public class Vars {
      * indent style.
      */
     public static final Map<String, Function<Integer, String>> INDENT_STYLES = new HashMap<>() {{
-        put("tab", "\t"::repeat);
         put("space", " "::repeat);
+        put("tab", "\t"::repeat);
     }};
 
     /**
