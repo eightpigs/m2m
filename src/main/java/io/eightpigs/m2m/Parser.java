@@ -3,6 +3,7 @@ package io.eightpigs.m2m;
 import io.eightpigs.m2m.database.IDatabase;
 import io.eightpigs.m2m.model.config.Class;
 import io.eightpigs.m2m.model.config.Config;
+import io.eightpigs.m2m.model.config.Package;
 import io.eightpigs.m2m.model.config.Property;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
@@ -52,6 +53,11 @@ public class Parser {
      * Wildcard symbol in configuration.
      */
     private static final String WILDCARD = "*";
+
+    /**
+     * Table name separator.
+     */
+    private static final String TABLE_NAME_SEPARATOR = "_";
 
     private Parser() {
     }
@@ -111,6 +117,8 @@ public class Parser {
             } else {
                 Map<String, Property> propertyMap = classConfig.getProperties().stream().collect(Collectors.toMap(Property::getColumnName, Function.identity()));
                 ClassInfo classInfo = new ClassInfo(classConfig, table, new ArrayList<>());
+                // get table corresponding package name.
+                classInfo.setPackage(getPackage(table, config.getPackage()));
                 classInfos.add(classInfo);
                 for (Column column : table.getColumns()) {
                     Property propertyConfig = (Property) getConfig(column.getName(), propertyMap);
@@ -120,6 +128,26 @@ public class Parser {
             }
         }
         return classInfos;
+    }
+
+
+    /**
+     * Get a new package name based on the table name and the definition of the package grouping in the configuration file.
+     * format: basePackage + "." + packageGroup.get(tableName.split("_")[0]).
+     *
+     * @param table         table info.
+     * @param packageConfig Package configuration information.
+     * @return Table corresponding package name.
+     */
+    private String getPackage(Table table, Package packageConfig) {
+        String[] names = table.getName().split(TABLE_NAME_SEPARATOR);
+        Map<String, String> group = packageConfig.getGroup();
+        if (group != null && group.size() > 0) {
+            if (group.containsKey(names[0])) {
+                return packageConfig.getBase() + "." + group.get(names[0]);
+            }
+        }
+        return packageConfig.getBase();
     }
 
     /**
@@ -161,6 +189,7 @@ public class Parser {
 class ClassInfo {
     private Class config;
     private Table table;
+    private String _package;
     private List<PropertyInfo> properties;
 
     public ClassInfo(Class config, Table table, List<PropertyInfo> properties) {
@@ -188,6 +217,13 @@ class ClassInfo {
         return properties;
     }
 
+    public String getPackage() {
+        return _package;
+    }
+
+    public void setPackage(String _package) {
+        this._package = _package;
+    }
 }
 
 class PropertyInfo {
