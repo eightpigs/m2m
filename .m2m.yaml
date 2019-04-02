@@ -19,6 +19,7 @@ package:
 
 tables:
   - users
+  - items
 
 info:
   author: eightpigs <eightpigs@outlook.com>

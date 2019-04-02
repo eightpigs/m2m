@@ -7,6 +7,7 @@ import io.eightpigs.m2m.model.config.Package;
 import io.eightpigs.m2m.model.config.Property;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
+import io.eightpigs.m2m.util.StringUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.nio.file.Files;
@@ -119,11 +120,18 @@ public class Parser {
                 ClassInfo classInfo = new ClassInfo(classConfig, table, new ArrayList<>());
                 // get table corresponding package name.
                 classInfo.setPackage(getPackage(table, config.getPackage()));
+                classInfo.setClassName(
+                    classConfig.getClassName() == null || classConfig.getClassName().trim().equals(WILDCARD) ? StringUtils.upperCamelCase(table.getName()) : classConfig.getClassName()
+                );
                 classInfos.add(classInfo);
                 for (Column column : table.getColumns()) {
                     Property propertyConfig = (Property) getConfig(column.getName(), propertyMap);
                     String[] typeAndImport = db.getTypeAndImport(column);
-                    classInfo.getProperties().add(new PropertyInfo(propertyConfig, column, typeAndImport));
+                    PropertyInfo propertyInfo = new PropertyInfo(propertyConfig, column, typeAndImport);
+                    propertyInfo.setPropertyName(
+                        propertyConfig.getPropertyName() == null || propertyConfig.getPropertyName().trim().equals(WILDCARD) ? StringUtils.lowerCamelCase(column.getName()) : propertyConfig.getPropertyName()
+                    );
+                    classInfo.getProperties().add(propertyInfo);
                 }
             }
         }
@@ -189,6 +197,7 @@ public class Parser {
 class ClassInfo {
     private Class config;
     private Table table;
+    private String className;
     private String _package;
     private List<PropertyInfo> properties;
 
@@ -224,6 +233,14 @@ class ClassInfo {
     public void setPackage(String _package) {
         this._package = _package;
     }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
+    }
 }
 
 class PropertyInfo {
@@ -231,6 +248,8 @@ class PropertyInfo {
     private Property config;
 
     private Column column;
+
+    private String propertyName;
 
     private String[] javaTypeAndImport;
 
@@ -250,5 +269,13 @@ class PropertyInfo {
 
     public String[] getJavaTypeAndImport() {
         return javaTypeAndImport;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
     }
 }
