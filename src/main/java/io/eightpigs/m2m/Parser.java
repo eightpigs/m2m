@@ -1,10 +1,9 @@
 package io.eightpigs.m2m;
 
 import io.eightpigs.m2m.database.IDatabase;
+import io.eightpigs.m2m.model.config.*;
 import io.eightpigs.m2m.model.config.Class;
-import io.eightpigs.m2m.model.config.Config;
 import io.eightpigs.m2m.model.config.Package;
-import io.eightpigs.m2m.model.config.Property;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
 import io.eightpigs.m2m.util.StringUtils;
@@ -123,6 +122,7 @@ public class Parser {
                 classInfo.setClassName(
                     classConfig.getClassName() == null || classConfig.getClassName().trim().equals(WILDCARD) ? StringUtils.upperCamelCase(table.getName()) : classConfig.getClassName()
                 );
+                classInfo.setInfo(config.getInfo());
                 classInfos.add(classInfo);
                 for (Column column : table.getColumns()) {
                     Property propertyConfig = (Property) getConfig(column.getName(), propertyMap);
@@ -131,6 +131,10 @@ public class Parser {
                     propertyInfo.setPropertyName(
                         propertyConfig.getPropertyName() == null || propertyConfig.getPropertyName().trim().equals(WILDCARD) ? StringUtils.lowerCamelCase(column.getName()) : propertyConfig.getPropertyName()
                     );
+                    if (propertyConfig.getImports() != null && propertyConfig.getImports().size() > 0) {
+                        classConfig.getImports().addAll(propertyConfig.getImports());
+                    }
+                    classConfig.setImports(classConfig.getImports().stream().distinct().collect(Collectors.toList()));
                     classInfo.getProperties().add(propertyInfo);
                 }
             }
@@ -196,6 +200,7 @@ public class Parser {
 
 class ClassInfo {
     private Class config;
+    private Info info;
     private Table table;
     private String className;
     private String _package;
@@ -205,13 +210,6 @@ class ClassInfo {
         this.config = config;
         this.table = table;
         this.properties = properties;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        // @TODO: class to string -> .java file content
-        return "";
     }
 
     public Class getConfig() {
@@ -240,6 +238,14 @@ class ClassInfo {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public Info getInfo() {
+        return info;
+    }
+
+    public void setInfo(Info info) {
+        this.info = info;
     }
 }
 
