@@ -1,0 +1,18 @@
+#if($info.emptyConstructor)
+  public ${info.className}() { }
+
+#end
+#if($info.fullConstructor)
+  public ${info.className}(##
+ #foreach($prop in $info.properties)
+$prop.javaTypeAndImport[0] $prop.propertyName##
+   #if(!$prop.last)
+, ##
+   #end
+ #end##
+) {
+  #foreach($prop in $info.properties)
+    this.$prop.propertyName = $prop.propertyName;
+  #end
+  }
+#end

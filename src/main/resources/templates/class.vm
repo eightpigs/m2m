@@ -1,0 +1,19 @@
+package $info.package;
+
+#foreach($pkg in $info.imports)
+import $pkg;
+#end
+
+#if($info.annotations.size() > 0)
+  #foreach($anno in $info.annotations)
+$anno
+  #end
+#end
+public class $info.className {
+
+#parse("templates/property.vm")
+
+#parse("templates/constructor.vm")
+
+#parse("templates/xetter.vm")
+}

@@ -6,9 +6,18 @@ import io.eightpigs.m2m.model.config.Class;
 import io.eightpigs.m2m.model.config.Package;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
+import io.eightpigs.m2m.model.parse.ClassInfo;
+import io.eightpigs.m2m.model.parse.PropertyInfo;
 import io.eightpigs.m2m.util.StringUtils;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,6 +68,11 @@ public class Parser {
      */
     private static final String TABLE_NAME_SEPARATOR = "_";
 
+    /**
+     * source code dir.
+     */
+    private static final String sourceDir = "src/main/java";
+
     private Parser() {
     }
 
@@ -91,11 +105,62 @@ public class Parser {
         List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
         if (tables.size() > 0) {
             List<ClassInfo> classInfos = merge(tables, config, db);
+            Template template = loadTemplate();
             for (ClassInfo classInfo : classInfos) {
-                String content = classInfo.toString();
-                // @TODO Write to file.
+                String content = parse(classInfo, template);
+                Path path = Paths.get(getClassFilePath(classInfo));
+                Files.writeString(path, content);
             }
         }
+    }
+
+    /**
+     * Gets the file path of the class.
+     * If the folder does not exist, create it.
+     *
+     * @param classInfo class parse info.
+     * @return file path of the class.
+     */
+    private String getClassFilePath(ClassInfo classInfo) {
+        String fileName = StringUtils.upperCamelCase(classInfo.getClassName()) + ".java";
+        String dir = basePath + sourceDir + "/" + classInfo.getPackage().replace(".", "/") + "/";
+        Path path = Paths.get(dir);
+        if (!Files.exists(path)) {
+            try {
+                Files.createDirectories(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return dir + fileName;
+    }
+
+    /**
+     * Parses the template and returns a string.
+     *
+     * @param classInfo class parse info.
+     * @param template  Template instance.
+     * @return parsed result.
+     */
+    private String parse(ClassInfo classInfo, Template template) {
+        VelocityContext ctx = new VelocityContext();
+        ctx.put("info", classInfo);
+        StringWriter sw = new StringWriter();
+        template.merge(ctx, sw);
+        return sw.toString();
+    }
+
+    /**
+     * load class templates.
+     *
+     * @return Template instance.
+     */
+    private Template loadTemplate() {
+        VelocityEngine ve = new VelocityEngine();
+        ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+        ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+        ve.init();
+        return ve.getTemplate("templates/class.vm");
     }
 
     /**
@@ -116,14 +181,33 @@ public class Parser {
                 throw new Exception("The class configuration information corresponding to the table was not found.");
             } else {
                 Map<String, Property> propertyMap = classConfig.getProperties().stream().collect(Collectors.toMap(Property::getColumnName, Function.identity()));
-                ClassInfo classInfo = new ClassInfo(classConfig, table, new ArrayList<>());
+
+                ClassInfo classInfo = new ClassInfo();
+                classInfo.setImports(new ArrayList<>(classConfig.getImports()));
+                classInfo.setProperties(new ArrayList<>());
                 // get table corresponding package name.
                 classInfo.setPackage(getPackage(table, config.getPackage()));
+                classInfo.setConfig(config);
+                classInfo.setClassConfig(classConfig);
+                classInfo.setFullConstructor(false);
+                classInfo.setEmptyConstructor(false);
+                if (classConfig.getConstructors().containsKey("full")) {
+                    classInfo.setFullConstructor(classConfig.getConstructors().get("full"));
+                }
+                if (classConfig.getConstructors().containsKey("empty")) {
+                    classInfo.setEmptyConstructor(classConfig.getConstructors().get("empty"));
+                }
                 classInfo.setClassName(
                     classConfig.getClassName() == null || classConfig.getClassName().trim().equals(WILDCARD) ? StringUtils.upperCamelCase(table.getName()) : classConfig.getClassName()
                 );
-                classInfo.setInfo(config.getInfo());
+                if (classConfig.getAnnotations() != null && classConfig.getAnnotations().size() > 0) {
+                    classInfo.setAnnotations(new ArrayList<>());
+                    for (String anno : classConfig.getAnnotations()) {
+                        classInfo.getAnnotations().add(Vars.exec(anno, table));
+                    }
+                }
                 classInfos.add(classInfo);
+
                 for (Column column : table.getColumns()) {
                     Property propertyConfig = (Property) getConfig(column.getName(), propertyMap);
                     String[] typeAndImport = db.getTypeAndImport(column);
@@ -131,11 +215,25 @@ public class Parser {
                     propertyInfo.setPropertyName(
                         propertyConfig.getPropertyName() == null || propertyConfig.getPropertyName().trim().equals(WILDCARD) ? StringUtils.lowerCamelCase(column.getName()) : propertyConfig.getPropertyName()
                     );
-                    if (propertyConfig.getImports() != null && propertyConfig.getImports().size() > 0) {
-                        classConfig.getImports().addAll(propertyConfig.getImports());
+                    propertyInfo.setUpperCaseName(StringUtils.upperCamelCase(propertyInfo.getPropertyName()));
+                    if (typeAndImport.length > 1) {
+                        classInfo.getImports().add(typeAndImport[1]);
                     }
-                    classConfig.setImports(classConfig.getImports().stream().distinct().collect(Collectors.toList()));
+                    if (propertyConfig.getImports() != null && propertyConfig.getImports().size() > 0) {
+                        classInfo.getImports().addAll(propertyConfig.getImports());
+                    }
+                    classInfo.setImports(classInfo.getImports().stream().distinct().collect(Collectors.toList()));
+                    propertyInfo.setLast(false);
+                    if (propertyConfig.getAnnotations() != null && propertyConfig.getAnnotations().size() > 0) {
+                        propertyInfo.setAnnotations(new ArrayList<>());
+                        for (String anno : propertyConfig.getAnnotations()) {
+                            propertyInfo.getAnnotations().add(Vars.exec(anno, column));
+                        }
+                    }
                     classInfo.getProperties().add(propertyInfo);
+                }
+                if (classInfo.getProperties().size() > 1) {
+                    classInfo.getProperties().get(classInfo.getProperties().size() - 1).setLast(true);
                 }
             }
         }
@@ -194,94 +292,5 @@ public class Parser {
             return Vars.INDENT_STYLES.get(config.getStyle().getIndentStyle()).apply(config.getStyle().getIndent());
         }
         return Vars.INDENT_STYLES.get("space").apply(4);
-    }
-}
-
-
-class ClassInfo {
-    private Class config;
-    private Info info;
-    private Table table;
-    private String className;
-    private String _package;
-    private List<PropertyInfo> properties;
-
-    public ClassInfo(Class config, Table table, List<PropertyInfo> properties) {
-        this.config = config;
-        this.table = table;
-        this.properties = properties;
-    }
-
-    public Class getConfig() {
-        return config;
-    }
-
-    public Table getTable() {
-        return table;
-    }
-
-    public List<PropertyInfo> getProperties() {
-        return properties;
-    }
-
-    public String getPackage() {
-        return _package;
-    }
-
-    public void setPackage(String _package) {
-        this._package = _package;
-    }
-
-    public String getClassName() {
-        return className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
-    }
-
-    public Info getInfo() {
-        return info;
-    }
-
-    public void setInfo(Info info) {
-        this.info = info;
-    }
-}
-
-class PropertyInfo {
-
-    private Property config;
-
-    private Column column;
-
-    private String propertyName;
-
-    private String[] javaTypeAndImport;
-
-    public PropertyInfo(Property config, Column column, String[] javaTypeAndImport) {
-        this.config = config;
-        this.column = column;
-        this.javaTypeAndImport = javaTypeAndImport;
-    }
-
-    public Property getConfig() {
-        return config;
-    }
-
-    public Column getColumn() {
-        return column;
-    }
-
-    public String[] getJavaTypeAndImport() {
-        return javaTypeAndImport;
-    }
-
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public void setPropertyName(String propertyName) {
-        this.propertyName = propertyName;
     }
 }

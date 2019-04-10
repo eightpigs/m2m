@@ -1,0 +1,10 @@
+#foreach($prop in $info.properties)
+  public $prop.javaTypeAndImport[0] get${prop.upperCaseName}() {
+    return $prop.propertyName;
+  }
+
+  public void set${prop.upperCaseName}($prop.javaTypeAndImport[0] $prop.propertyName) {
+    this.$prop.propertyName = $prop.propertyName;
+  }
+
+#end

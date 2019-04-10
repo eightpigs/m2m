@@ -29,8 +29,8 @@ classes:
   - tableName: "*"
     comment: true
     constructors:
-      full: false
-      empty: false
+      full: true
+      empty: true
     annotations:
       - '@DBTable(name="${tableName}")'
     imports:

@@ -1,5 +1,6 @@
 package io.eightpigs.m2m;
 
+import gherkin.lexer.Pa;
 import io.eightpigs.m2m.database.IDatabase;
 import io.eightpigs.m2m.database.impl.MySQL;
 import io.eightpigs.m2m.model.db.Column;
@@ -11,6 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * All variables available in the configuration file and internally defined.
@@ -29,7 +32,7 @@ public class Vars {
     private static final String DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 
-    public static final Map<String, Function<Object, String>> VARIABLES = new HashMap<>() {
+    private static final Map<String, Function<Object, String>> VARIABLES = new HashMap<>() {
         {
             put("date", (format) -> new SimpleDateFormat(StringUtils.choose(format.toString(), DEFAULT_DATE_FORMAT))
                 .format(new Date()));
@@ -59,7 +62,7 @@ public class Vars {
     /**
      * indent style.
      */
-    public static final Map<String, Function<Integer, String>> INDENT_STYLES = new HashMap<>() {{
+    static final Map<String, Function<Integer, String>> INDENT_STYLES = new HashMap<>() {{
         put("space", " "::repeat);
         put("tab", "\t"::repeat);
     }};
@@ -67,7 +70,20 @@ public class Vars {
     /**
      * Implementation of different database operations.
      */
-    public static final Map<String, IDatabase> DATABASE_MAP = new HashMap<>() {{
+    static final Map<String, IDatabase> DATABASE_MAP = new HashMap<>() {{
         put(DATABASE_TYPE_MYSQL, new MySQL());
     }};
+
+    public static String exec(String str, Object param) {
+        Pattern pattern = Pattern.compile("\\$\\{.*\\}");
+        Matcher matcher = pattern.matcher(str);
+        if (matcher.find()) {
+            String exp = matcher.group(0);
+            String name = exp.replace("${", "").replace("}", "");
+            if (VARIABLES.containsKey(name)) {
+                return matcher.replaceAll(VARIABLES.get(name).apply(param));
+            }
+        }
+        return str;
+    }
 }
