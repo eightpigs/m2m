@@ -145,6 +145,7 @@ public class Parser {
     private String parse(ClassInfo classInfo, Template template) {
         VelocityContext ctx = new VelocityContext();
         ctx.put("info", classInfo);
+        ctx.put("indent", indent(classInfo.getConfig()));
         StringWriter sw = new StringWriter();
         template.merge(ctx, sw);
         return sw.toString();

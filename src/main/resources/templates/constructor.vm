@@ -1,9 +1,9 @@
 #if($info.emptyConstructor)
-  public ${info.className}() { }
+${indent}public ${info.className}() { }
 
 #end
 #if($info.fullConstructor)
-  public ${info.className}(##
+${indent}public ${info.className}(##
  #foreach($prop in $info.properties)
 $prop.javaTypeAndImport[0] $prop.propertyName##
    #if(!$prop.last)
@@ -12,7 +12,7 @@ $prop.javaTypeAndImport[0] $prop.propertyName##
  #end##
 ) {
   #foreach($prop in $info.properties)
-    this.$prop.propertyName = $prop.propertyName;
+${indent}${indent}this.$prop.propertyName = $prop.propertyName;
   #end
-  }
+${indent}}
 #end

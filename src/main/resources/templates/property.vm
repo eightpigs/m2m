@@ -1,14 +1,14 @@
 #foreach($prop in $info.properties)
   #if($prop.column.comment.length() > 0)
-  /**
-  * $prop.column.comment
-  */
+${indent}/**
+${indent}* $prop.column.comment
+${indent}*/
   #end
   #if($prop.annotations.size() > 0)
     #foreach($anno in $prop.annotations)
-  $anno
+${indent}$anno
     #end
   #end
-  private $prop.javaTypeAndImport[0] $prop.propertyName;
+${indent}private $prop.javaTypeAndImport[0] $prop.propertyName;
 
 #end
