@@ -1,8 +1,8 @@
 #foreach($prop in $info.properties)
   #if($prop.column.comment.length() > 0)
 ${indent}/**
-${indent}* $prop.column.comment
-${indent}*/
+${indent} * $prop.column.comment
+${indent} */
   #end
   #if($prop.annotations.size() > 0)
     #foreach($anno in $prop.annotations)
