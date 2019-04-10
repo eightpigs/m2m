@@ -1,6 +1,6 @@
 # m2m (mysql2Model)
 
-M2m is a tool for generating entity classes from tables based on custom configuration files
+m2m is an Intellij Idea plugin that generates entity classes from tables based on custom configuration files.
 
 ## Features
 
@@ -12,7 +12,7 @@ M2m is a tool for generating entity classes from tables based on custom configur
 
 ## Usage
 
-Sample configuration file.
+Sample configuration file: **.m2m.yaml**.
 
 ```yaml
 database:
