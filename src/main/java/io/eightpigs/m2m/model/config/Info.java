@@ -18,6 +18,14 @@ public class Info {
      */
     private String date;
 
+    public Info() {
+    }
+
+    public Info(String author, String date) {
+        this.author = author;
+        this.date = date;
+    }
+
     public String getAuthor() {
         return author;
     }

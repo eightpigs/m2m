@@ -8,8 +8,8 @@ database:
   params: useInformationSchema=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&autoReconnect=true
 
 style:
-  indent: 4
-  indentStyle: space
+  indent: 1
+  indentStyle: tab
 
 package:
   base: io.eightpigs.test.model

@@ -73,6 +73,16 @@ public class Parser {
      */
     private static final String sourceDir = "src/main/java";
 
+    /**
+     * default author in java doc.
+     */
+    private static final String DEFAULT_AUTHOR = "m2m generator";
+
+    /**
+     * default create date in java doc.
+     */
+    private static final String DEFAULT_DATE = "${datetime}";
+
     private Parser() {
     }
 
@@ -101,6 +111,18 @@ public class Parser {
 
     public void process() throws Exception {
         Config config = loadConfig();
+        if (config.getInfo() == null) {
+            config.setInfo(new Info(DEFAULT_AUTHOR, Vars.exec(DEFAULT_DATE, null)));
+        } else {
+            if (config.getInfo().getAuthor() == null || config.getInfo().getAuthor().trim().length() == 0) {
+                config.getInfo().setAuthor(DEFAULT_AUTHOR);
+            }
+
+            if (config.getInfo().getDate() == null || config.getInfo().getDate().trim().length() == 0) {
+                config.getInfo().setDate(DEFAULT_DATE);
+            }
+            config.getInfo().setDate(Vars.exec(config.getInfo().getDate(), "yyyy-MM-dd HH:mm:ss"));
+        }
         IDatabase db = Vars.DATABASE_MAP.get(config.getDatabase().getType());
         List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
         if (tables.size() > 0) {
@@ -191,6 +213,7 @@ public class Parser {
                 classInfo.setConfig(config);
                 classInfo.setClassConfig(classConfig);
                 classInfo.setFullConstructor(false);
+                classInfo.setTable(table);
                 classInfo.setEmptyConstructor(false);
                 if (classConfig.getConstructors().containsKey("full")) {
                     classInfo.setFullConstructor(classConfig.getConstructors().get("full"));
