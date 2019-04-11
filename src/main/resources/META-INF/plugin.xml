@@ -1,28 +1,40 @@
 <idea-plugin>
-    <id>io.eightpigs.m2m</id>
-    <name>m2m</name>
-    <vendor email="eightpigs@outlook.com" url="https://eightpigs.io">Eightpigs</vendor>
+  <id>io.eightpigs.m2m</id>
+  <name>m2m</name>
+  <vendor email="eightpigs@outlook.com" url="https://eightpigs.io">Eightpigs</vendor>
 
-    <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+  <description><![CDATA[
+<article>
+  <h1 id="m2m-(mysql2model)">m2m (mysql2Model)</h1>
+<p>m2m is an Intellij Idea plugin that generates entity classes from tables based on custom configuration files.</p>
+<h2 id="features">Features</h2>
+<ol>
+<li>Support for automatically creating different packages based on table names</li>
+<li>Support to generate the specified table in the library</li>
+<li>Support reading comments from the table</li>
+<li>Support for adding custom annotations to fields</li>
+<li>Support for adding custom "import"</li>
+</ol>
+<h2 id="usage">Usage</h2>
+Please look at <a target="_blank" href="https://github.com/eightpigs/m2m">Github</a>
+</article>
     ]]></description>
 
-    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-         on how to target different products -->
-    <!-- uncomment to enable plugin in all products
-    <depends>com.intellij.modules.lang</depends>
-    -->
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+  <!-- uncomment to enable plugin in all products
+  <depends>com.intellij.modules.lang</depends>
+  -->
 
-    <extensions defaultExtensionNs="com.intellij">
-        <!-- Add your extensions here -->
-    </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Add your extensions here -->
+  </extensions>
 
-    <actions>
-        <!-- Add your actions here -->
-        <action id="io.eightpigs.m2m.Main" class="io.eightpigs.m2m.Main" text="mysql2Model"
-                description="mysql table to java model.">
-            <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl meta alt EQUALS"/>
-        </action>
-    </actions>
+  <actions>
+    <!-- Add your actions here -->
+    <action id="io.eightpigs.m2m.Main" class="io.eightpigs.m2m.Main" text="mysql2Model"
+            description="mysql table to java model.">
+      <keyboard-shortcut keymap="$default" first-keystroke="shift ctrl meta alt EQUALS"/>
+    </action>
+  </actions>
 </idea-plugin>
