@@ -6,11 +6,6 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 /**
  * Convert table to java object.
  *
@@ -18,8 +13,6 @@ import java.nio.file.Paths;
  * @date 2019-03-28
  */
 public class Main extends AnAction {
-
-    private static final String configFileName = ".mysql2Model.yaml";
 
     @Override
     public void actionPerformed(AnActionEvent e) {

@@ -1,6 +1,5 @@
 package io.eightpigs.m2m;
 
-import gherkin.lexer.Pa;
 import io.eightpigs.m2m.database.IDatabase;
 import io.eightpigs.m2m.database.impl.MySQL;
 import io.eightpigs.m2m.model.db.Column;

@@ -1,9 +1,9 @@
 package io.eightpigs.m2m;
 
 import io.eightpigs.m2m.database.IDatabase;
-import io.eightpigs.m2m.model.config.*;
 import io.eightpigs.m2m.model.config.Class;
 import io.eightpigs.m2m.model.config.Package;
+import io.eightpigs.m2m.model.config.*;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
 import io.eightpigs.m2m.model.parse.ClassInfo;
