@@ -4,11 +4,11 @@ ${indent}/**
 ${indent} * $prop.column.comment
 ${indent} */
   #end
-  #if($prop.annotations.size() > 0)
-    #foreach($anno in $prop.annotations)
+#if($prop.annotations.size() > 0)
+#foreach($anno in $prop.annotations)
 ${indent}$anno
-    #end
-  #end
+#end
+#end
 ${indent}private $prop.javaTypeAndImport[0] $prop.propertyName;
 
 #end

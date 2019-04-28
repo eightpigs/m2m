@@ -4,15 +4,13 @@ ${indent}public ${info.className}() { }
 #end
 #if($info.fullConstructor)
 ${indent}public ${info.className}(##
- #foreach($prop in $info.properties)
-$prop.javaTypeAndImport[0] $prop.propertyName##
-   #if(!$prop.last)
-, ##
-   #end
- #end##
+#foreach($prop in $info.properties)
+$prop.javaTypeAndImport[0] $prop.propertyName#if(!$prop.last), #end
+#end##
 ) {
   #foreach($prop in $info.properties)
 ${indent}${indent}this.$prop.propertyName = $prop.propertyName;
   #end
 ${indent}}
+
 #end

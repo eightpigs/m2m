@@ -4,7 +4,6 @@ import io.eightpigs.m2m.database.IDatabase;
 import io.eightpigs.m2m.model.config.Database;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
-import io.eightpigs.m2m.util.LoggerUtils;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 /**
  * MySQL database operation implementation.
@@ -28,8 +26,6 @@ public class MySQL implements IDatabase {
     private static Connection conn;
 
     private static final String connectStrTmpl = "jdbc:mysql://{host}:{port}/{name}?{params}";
-
-    private static Logger logger = LoggerUtils.get(MySQL.class);
 
     private static Map<String, Function<Integer, String[]>> typeMap;
 
@@ -50,7 +46,7 @@ public class MySQL implements IDatabase {
         Function<Integer, String[]> byteArray = (len) -> new String[]{"byte[]"};
         Function<Integer, String[]> date = (len) -> new String[]{"Date", "java.sql.Date"};
 
-        typeMap = new HashMap<>() {{
+        typeMap = new HashMap<String, Function<Integer, String[]>>() {{
             put("BIT", bit);
 
             put("TINYINT", tinyint);
@@ -108,10 +104,8 @@ public class MySQL implements IDatabase {
     }
 
     private void connect(Database database) throws Exception {
-        logger.info("connecting to database.");
         Class.forName("com.mysql.cj.jdbc.Driver");
         conn = DriverManager.getConnection(getConnectStr(database), database.getUser(), database.getPassword());
-        logger.info("database connected.");
     }
 
     @Override

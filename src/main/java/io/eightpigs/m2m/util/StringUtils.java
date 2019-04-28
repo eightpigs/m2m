@@ -50,4 +50,12 @@ public class StringUtils {
         return lowerCamelCase.substring(0, 1).toUpperCase() + lowerCamelCase.substring(1);
     }
 
+    public static String repeat(String str, int n) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < n; i++) {
+            builder.append(str);
+        }
+        return builder.toString();
+    }
+
 }

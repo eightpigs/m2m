@@ -1,5 +1,6 @@
 package io.eightpigs.m2m;
 
+import com.intellij.openapi.util.io.StreamUtil;
 import io.eightpigs.m2m.database.IDatabase;
 import io.eightpigs.m2m.model.config.Class;
 import io.eightpigs.m2m.model.config.Package;
@@ -9,14 +10,12 @@ import io.eightpigs.m2m.model.db.Table;
 import io.eightpigs.m2m.model.parse.ClassInfo;
 import io.eightpigs.m2m.model.parse.PropertyInfo;
 import io.eightpigs.m2m.util.StringUtils;
-import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
-import org.apache.velocity.runtime.RuntimeConstants;
-import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.apache.velocity.app.Velocity;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,6 +82,11 @@ public class Parser {
      */
     private static final String DEFAULT_DATE = "${datetime}";
 
+    /**
+     * The name of the template, defined in the order in which the content is populated.
+     */
+    private static final String[] TEMPLATE_NAMES = new String[]{"class.vm", "property.vm", "constructor.vm", "xetter.vm"};
+
     private Parser() {
     }
 
@@ -127,11 +131,9 @@ public class Parser {
         List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
         if (tables.size() > 0) {
             List<ClassInfo> classInfos = merge(tables, config, db);
-            Template template = loadTemplate();
             for (ClassInfo classInfo : classInfos) {
-                String content = parse(classInfo, template);
                 Path path = Paths.get(getClassFilePath(classInfo));
-                Files.writeString(path, content);
+                Files.write(path, parse(classInfo).getBytes());
             }
         }
     }
@@ -145,7 +147,7 @@ public class Parser {
      */
     private String getClassFilePath(ClassInfo classInfo) {
         String fileName = StringUtils.upperCamelCase(classInfo.getClassName()) + ".java";
-        String dir = basePath + sourceDir + "/" + classInfo.getPackage().replace(".", "/") + "/";
+        String dir = basePath + "/" + sourceDir + "/" + classInfo.getPackage().replace(".", "/") + "/";
         Path path = Paths.get(dir);
         if (!Files.exists(path)) {
             try {
@@ -161,29 +163,28 @@ public class Parser {
      * Parses the template and returns a string.
      *
      * @param classInfo class parse info.
-     * @param template  Template instance.
      * @return parsed result.
      */
-    private String parse(ClassInfo classInfo, Template template) {
+    private String parse(ClassInfo classInfo) {
         VelocityContext ctx = new VelocityContext();
         ctx.put("info", classInfo);
         ctx.put("indent", indent(classInfo.getConfig()));
-        StringWriter sw = new StringWriter();
-        template.merge(ctx, sw);
-        return sw.toString();
+        StringWriter writer = new StringWriter();
+        for (String name : TEMPLATE_NAMES) {
+            Velocity.evaluate(ctx, writer, "parse", loadTemplate(name));
+        }
+        writer.append("}");
+        return writer.toString();
     }
 
-    /**
-     * load class templates.
-     *
-     * @return Template instance.
-     */
-    private Template loadTemplate() {
-        VelocityEngine ve = new VelocityEngine();
-        ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
-        ve.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
-        ve.init();
-        return ve.getTemplate("templates/class.vm");
+    private String loadTemplate(String name) {
+        InputStream stream = this.getClass().getResourceAsStream("/templates/" + name);
+        try {
+            return StreamUtil.readText(stream, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**

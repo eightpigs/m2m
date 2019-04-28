@@ -22,6 +22,7 @@ public class Main extends AnAction {
             try {
                 parser.process();
             } catch (Exception ex) {
+                ex.printStackTrace();
                 Messages.showMessageDialog(ex.getMessage(), "parse error", Messages.getErrorIcon());
             }
         }
