@@ -20,10 +20,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -87,6 +84,21 @@ public class Parser {
      */
     private static final String[] TEMPLATE_NAMES = new String[]{"class.vm", "property.vm", "constructor.vm", "xetter.vm"};
 
+    private static final String fullConstructor = "full";
+    private static final String emptyConstructor = "empty";
+
+    private static Map<String, Boolean> DEFAULT_CONSTRUCTORS = new HashMap<String, Boolean>() {
+        {
+            put(fullConstructor, true);
+            put(emptyConstructor, true);
+        }
+    };
+
+    /**
+     * default property config.
+     */
+    private Property DEFAULT_PROPERTY_CONFIG = new Property(WILDCARD, null, true, true, true, Collections.emptyList(), new ArrayList<>(1));
+
     private Parser() {
     }
 
@@ -115,6 +127,19 @@ public class Parser {
 
     public void process() throws Exception {
         Config config = loadConfig();
+        checkConfig(config);
+        IDatabase db = Vars.DATABASE_MAP.get(config.getDatabase().getType());
+        List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
+        if (tables.size() > 0) {
+            List<ClassInfo> classInfos = merge(tables, config, db);
+            for (ClassInfo classInfo : classInfos) {
+                Path path = Paths.get(getClassFilePath(classInfo));
+                Files.write(path, parse(classInfo).getBytes());
+            }
+        }
+    }
+
+    private void checkConfig(Config config) {
         if (config.getInfo() == null) {
             config.setInfo(new Info(DEFAULT_AUTHOR, Vars.exec(DEFAULT_DATE, null)));
         } else {
@@ -127,14 +152,21 @@ public class Parser {
             }
             config.getInfo().setDate(Vars.exec(config.getInfo().getDate(), "yyyy-MM-dd HH:mm:ss"));
         }
-        IDatabase db = Vars.DATABASE_MAP.get(config.getDatabase().getType());
-        List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
-        if (tables.size() > 0) {
-            List<ClassInfo> classInfos = merge(tables, config, db);
-            for (ClassInfo classInfo : classInfos) {
-                Path path = Paths.get(getClassFilePath(classInfo));
-                Files.write(path, parse(classInfo).getBytes());
-            }
+
+        if (config.getClasses() == null) {
+            config.setClasses(new Class[]{
+                new Class(WILDCARD, null, true, DEFAULT_CONSTRUCTORS, Collections.emptyList(), Collections.emptyList(), Collections.emptyList())
+            });
+        }
+
+        if (config.getClasses().length > 1) {
+            Arrays.stream(config.getClasses()).parallel().forEach(c -> {
+                c.setAnnotations(c.getAnnotations() == null ? Collections.emptyList() : c.getAnnotations());
+                c.setImports(c.getImports() == null ? new ArrayList<>(5) : c.getImports());
+                c.setProperties(c.getProperties() == null ? new ArrayList<>(10) : c.getProperties());
+                c.setComment(c.getComment() == null ? true : c.getComment());
+                c.setConstructors(c.getConstructors() == null ? DEFAULT_CONSTRUCTORS : c.getConstructors());
+            });
         }
     }
 
@@ -216,11 +248,11 @@ public class Parser {
                 classInfo.setFullConstructor(false);
                 classInfo.setTable(table);
                 classInfo.setEmptyConstructor(false);
-                if (classConfig.getConstructors().containsKey("full")) {
-                    classInfo.setFullConstructor(classConfig.getConstructors().get("full"));
+                if (classConfig.getConstructors().containsKey(fullConstructor)) {
+                    classInfo.setFullConstructor(classConfig.getConstructors().get(fullConstructor));
                 }
-                if (classConfig.getConstructors().containsKey("empty")) {
-                    classInfo.setEmptyConstructor(classConfig.getConstructors().get("empty"));
+                if (classConfig.getConstructors().containsKey(emptyConstructor)) {
+                    classInfo.setEmptyConstructor(classConfig.getConstructors().get(emptyConstructor));
                 }
                 classInfo.setClassName(
                     classConfig.getClassName() == null || classConfig.getClassName().trim().equals(WILDCARD) ? StringUtils.upperCamelCase(table.getName()) : classConfig.getClassName()
@@ -235,6 +267,9 @@ public class Parser {
 
                 for (Column column : table.getColumns()) {
                     Property propertyConfig = (Property) getConfig(column.getName(), propertyMap);
+                    if (propertyConfig == null) {
+                        propertyConfig = DEFAULT_PROPERTY_CONFIG;
+                    }
                     String[] typeAndImport = db.getTypeAndImport(column);
                     PropertyInfo propertyInfo = new PropertyInfo(propertyConfig, column, typeAndImport);
                     propertyInfo.setPropertyName(

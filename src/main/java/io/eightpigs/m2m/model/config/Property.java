@@ -46,6 +46,19 @@ public class Property {
      */
     private List<String> imports;
 
+    public Property() {
+    }
+
+    public Property(String columnName, String propertyName, Boolean getter, Boolean setter, Boolean comment, List<String> annotations, List<String> imports) {
+        this.columnName = columnName;
+        this.propertyName = propertyName;
+        this.getter = getter;
+        this.setter = setter;
+        this.comment = comment;
+        this.annotations = annotations;
+        this.imports = imports;
+    }
+
     public String getColumnName() {
         return columnName;
     }

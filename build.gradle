@@ -13,13 +13,6 @@ patchPluginXml {
   changeNotes """"""
 }
 
-processResources {
-  from('src/main/java') {
-    include '**/*.vm'
-  }
-  into "${buildDir}/classes"
-}
-
 repositories {
   mavenLocal()
   maven { url "http://maven.aliyun.com/nexus/content/groups/public/" }

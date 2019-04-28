@@ -46,6 +46,19 @@ public class Class {
      */
     private List<Property> properties;
 
+    public Class() {
+    }
+
+    public Class(String tableName, String className, Boolean comment, Map<String, Boolean> constructors, List<String> annotations, List<String> imports, List<Property> properties) {
+        this.tableName = tableName;
+        this.className = className;
+        this.comment = comment;
+        this.constructors = constructors;
+        this.annotations = annotations;
+        this.imports = imports;
+        this.properties = properties;
+    }
+
     public String getTableName() {
         return tableName;
     }
