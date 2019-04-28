@@ -10,12 +10,41 @@ m2m is an Intellij Idea plugin that generates entity classes from tables based o
 4. Support for adding custom annotations to fields
 5. Support for adding custom "import"
 
+## TODO
+
+- [ ] Fix space indent BUG
+- [ ] Detect project type (Basic/Maven/Gradle)
+- [ ] Revise the README.md
+- [ ] Singular and Plural
+
 ## Usage
 
-1. create config file.
+1. create config file: **.m2m.yaml**.
 2. Shortcuts: **Ctrl + Shift + Alt + Meta(Win) + EQUALS**
 
-Sample configuration file: **.m2m.yaml**.
+### simplest configuration
+
+```yaml
+database:
+  type: mysql
+  host: "127.0.0.1"
+  port: 3306
+  user: root
+  password: root
+  name: shadow
+  params: useInformationSchema=true&serverTimezone=UTC&useUnicode=true&characterEncoding=utf8&autoReconnect=true
+
+# automatically creating different packages based on table names.
+package:
+  base: io.eightpigs.test.model
+
+# Table name to be processed.
+tables:
+  - users
+  - items
+```
+
+### Complete configuration
 
 ```yaml
 database:
@@ -115,10 +144,6 @@ The configuration item `tables` are used to specify the table to be generated.
 #### configuration at build time
 
 Configuration item "classes" is the detailed configuration at build time.
-
-This configuration item must be included in the configuration file, and if there is no one-to-one configuration (talbe - class), there must be a wildcard configuration: *.
-
-The simplest configuration:
 
 ```yaml
 classes:
