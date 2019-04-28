@@ -12,6 +12,9 @@ m2m is an Intellij Idea plugin that generates entity classes from tables based o
 
 ## Usage
 
+1. create config file.
+2. Shortcuts: **Ctrl + Shift + Alt + Meta(Win) + EQUALS**
+
 Sample configuration file: **.m2m.yaml**.
 
 ```yaml
