@@ -44,6 +44,6 @@ classes:
         setter: true
         comment: true
         annotations:
-          - '@DBField(name="${fieldName}")'
+          - '@DBField(name="${column}")'
         imports:
           - io.eightpigs.tools.mybatis.annotation.DBField

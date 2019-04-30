@@ -64,9 +64,9 @@ public class Vars {
                 return "";
             });
 
-            put("fieldName", (field) -> {
-                if (field != null) {
-                    return ((Column) field).getName();
+            put("columnName", (column) -> {
+                if (column != null) {
+                    return ((Column) column).getName();
                 }
                 return "";
             });
