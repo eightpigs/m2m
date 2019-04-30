@@ -1,3 +1,7 @@
+[English](https://github.com/eightpigs/m2m/blob/master/README-en.md)
+
+---
+
 # m2m
 
 m2m 是一个可以通过配置文件定制化生成数据库表到具体实体的Intellij Idea插件。
