@@ -11,11 +11,14 @@ style:
   indent: 1
   indentStyle: tab
 
+path: src
+
 package:
   base: io.eightpigs.test.model
   group:
     user: user
     order: order
+
 
 tables:
   - users

@@ -65,11 +65,6 @@ public class Parser {
     private static final String TABLE_NAME_SEPARATOR = "_";
 
     /**
-     * source code dir.
-     */
-    private static final String sourceDir = "src/main/java";
-
-    /**
      * default author in java doc.
      */
     private static final String DEFAULT_AUTHOR = "m2m generator";
@@ -137,13 +132,16 @@ public class Parser {
         if (tables != null && tables.size() > 0) {
             List<ClassInfo> classInfos = merge(tables, config, db);
             for (ClassInfo classInfo : classInfos) {
-                Path path = Paths.get(getClassFilePath(classInfo));
+                Path path = Paths.get(getClassFilePath(config, classInfo));
                 Files.write(path, parse(classInfo).getBytes());
             }
         }
     }
 
     private void checkConfig(Config config) {
+        if (config.getPath() == null) {
+            config.setPath("src");
+        }
         if (config.getInfo() == null) {
             config.setInfo(new Info(DEFAULT_AUTHOR, Vars.exec(DEFAULT_DATE, Vars.DEFAULT_DATE_FORMAT)));
         } else {
@@ -181,9 +179,9 @@ public class Parser {
      * @param classInfo class parse info.
      * @return file path of the class.
      */
-    private String getClassFilePath(ClassInfo classInfo) {
+    private String getClassFilePath(Config config, ClassInfo classInfo) {
         String fileName = StringUtils.upperCamelCase(classInfo.getClassName()) + ".java";
-        String dir = basePath + "/" + sourceDir + "/" + classInfo.getPackage().replace(".", "/") + "/";
+        String dir = basePath + "/" + config.getPath() + "/" + classInfo.getPackage().replace(".", "/") + "/";
         Path path = Paths.get(dir);
         if (!Files.exists(path)) {
             try {

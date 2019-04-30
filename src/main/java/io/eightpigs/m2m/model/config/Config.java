@@ -40,6 +40,13 @@ public class Config {
      */
     private Class[] classes;
 
+    /**
+     * The target directory, if not specified, is placed directly in the project's src directory.
+     * Is the relative path of the current project.
+     * default: src
+     */
+    private String path;
+
     public Database getDatabase() {
         return database;
     }
@@ -94,5 +101,13 @@ public class Config {
 
     public void setInfo(Info info) {
         this.info = info;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 }

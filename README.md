@@ -13,7 +13,6 @@ m2m is an Intellij Idea plugin that generates entity classes from tables based o
 ## TODO
 
 - [ ] Fix space indent BUG
-- [ ] Detect project type (Basic/Maven/Gradle)
 - [ ] Revise the README.md
 - [ ] Singular and Plural
 
