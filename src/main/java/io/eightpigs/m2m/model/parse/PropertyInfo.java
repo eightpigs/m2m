@@ -37,12 +37,24 @@ public class PropertyInfo {
         return config;
     }
 
+    public void setConfig(Property config) {
+        this.config = config;
+    }
+
     public Column getColumn() {
         return column;
     }
 
+    public void setColumn(Column column) {
+        this.column = column;
+    }
+
     public String[] getJavaTypeAndImport() {
         return javaTypeAndImport;
+    }
+
+    public void setJavaTypeAndImport(String[] javaTypeAndImport) {
+        this.javaTypeAndImport = javaTypeAndImport;
     }
 
     public String getPropertyName() {
@@ -53,24 +65,12 @@ public class PropertyInfo {
         this.propertyName = propertyName;
     }
 
-    public void setConfig(Property config) {
-        this.config = config;
-    }
-
-    public void setColumn(Column column) {
-        this.column = column;
-    }
-
     public String getUpperCaseName() {
         return upperCaseName;
     }
 
     public void setUpperCaseName(String upperCaseName) {
         this.upperCaseName = upperCaseName;
-    }
-
-    public void setJavaTypeAndImport(String[] javaTypeAndImport) {
-        this.javaTypeAndImport = javaTypeAndImport;
     }
 
     public Boolean getLast() {

@@ -27,11 +27,24 @@ public class Vars {
      */
     public static final String DATABASE_TYPE_MYSQL = "mysql";
 
-    private static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
-    private static final String DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    private static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
+    public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    public static final String DEFAULT_DATETIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 
-    private static Pattern EXP_PATTERN = Pattern.compile("\\$\\{.*\\}");
+    /**
+     * indent style.
+     */
+    static final Map<String, Function<Integer, String>> INDENT_STYLES = new HashMap<String, Function<Integer, String>>() {{
+        put("space", (n) -> StringUtils.repeat(" ", n));
+        put("tab", (n) -> StringUtils.repeat("\t", n));
+    }};
+
+    /**
+     * Implementation of different database operations.
+     */
+    static final Map<String, IDatabase> DATABASE_MAP = new HashMap<String, IDatabase>() {{
+        put(DATABASE_TYPE_MYSQL, new MySQL());
+    }};
 
     private static final Map<String, Function<Object, String>> VARIABLES = new HashMap<String, Function<Object, String>>() {
         {
@@ -60,20 +73,7 @@ public class Vars {
         }
     };
 
-    /**
-     * indent style.
-     */
-    static final Map<String, Function<Integer, String>> INDENT_STYLES = new HashMap<String, Function<Integer, String>>() {{
-        put("space", (n) -> StringUtils.repeat(" ", n));
-        put("tab", (n) -> StringUtils.repeat("\t", n));
-    }};
-
-    /**
-     * Implementation of different database operations.
-     */
-    static final Map<String, IDatabase> DATABASE_MAP = new HashMap<String, IDatabase>() {{
-        put(DATABASE_TYPE_MYSQL, new MySQL());
-    }};
+    private static Pattern EXP_PATTERN = Pattern.compile("\\$\\{.*\\}");
 
     static String exec(String str, Object param) {
         Matcher matcher = EXP_PATTERN.matcher(str);

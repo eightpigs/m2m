@@ -22,8 +22,16 @@ public class ClassInfo {
         return table;
     }
 
+    public void setTable(Table table) {
+        this.table = table;
+    }
+
     public List<PropertyInfo> getProperties() {
         return properties;
+    }
+
+    public void setProperties(List<PropertyInfo> properties) {
+        this.properties = properties;
     }
 
     public String getPackage() {
@@ -50,20 +58,12 @@ public class ClassInfo {
         this.config = config;
     }
 
-    public void setTable(Table table) {
-        this.table = table;
-    }
-
     public List<String> getImports() {
         return imports;
     }
 
     public void setImports(List<String> imports) {
         this.imports = imports;
-    }
-
-    public void setProperties(List<PropertyInfo> properties) {
-        this.properties = properties;
     }
 
     public Class getClassConfig() {

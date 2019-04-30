@@ -4,7 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
+import io.eightpigs.m2m.util.IntellijUtils;
 
 /**
  * Convert table to java object.
@@ -22,9 +22,10 @@ public class Main extends AnAction {
             try {
                 parser.process();
             } catch (Exception ex) {
-                ex.printStackTrace();
-                Messages.showMessageDialog(ex.getMessage(), "parse error", Messages.getErrorIcon());
+                IntellijUtils.errorMsg(ex.getMessage());
             }
+        } else {
+            IntellijUtils.errorMsg("The config file (.m2m.yaml) does not exist.");
         }
     }
 }

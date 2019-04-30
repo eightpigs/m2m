@@ -4,6 +4,7 @@ import io.eightpigs.m2m.database.IDatabase;
 import io.eightpigs.m2m.model.config.Database;
 import io.eightpigs.m2m.model.db.Column;
 import io.eightpigs.m2m.model.db.Table;
+import io.eightpigs.m2m.util.IntellijUtils;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -23,11 +24,9 @@ import java.util.function.Function;
  */
 public class MySQL implements IDatabase {
 
-    private static Connection conn;
-
     private static final String connectStrTmpl = "jdbc:mysql://{host}:{port}/{name}?{params}";
-
     private static Map<String, Function<Integer, String[]>> typeMap;
+    private static Connection conn;
 
 
     /**
@@ -103,44 +102,52 @@ public class MySQL implements IDatabase {
             .replace("{params}", database.getParams() == null ? "" : database.getParams());
     }
 
-    private void connect(Database database) throws Exception {
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        conn = DriverManager.getConnection(getConnectStr(database), database.getUser(), database.getPassword());
+    private boolean connect(Database database) {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(getConnectStr(database), database.getUser(), database.getPassword());
+        } catch (Exception e) {
+            IntellijUtils.errorMsg("Database connection failed: " + e.getMessage());
+            return false;
+        }
+        return true;
     }
 
     @Override
     public List<Table> getTables(Database database, List<String> specifyTables) {
-        List<Table> tables = new ArrayList<>();
-        try {
-            connect(database);
-            Map<String, String> tableMap = getSpecifyTableMap(specifyTables);
-            DatabaseMetaData databaseMetaData = conn.getMetaData();
-            ResultSet resultSet = databaseMetaData.getTables(database.getName(), null, "%", null);
-            while (resultSet.next()) {
-                String name = resultSet.getString("TABLE_NAME");
-                // Check if the table name is specified.
-                if (tableMap == null || tableMap.containsKey(name)) {
-                    Table table = new Table(name, resultSet.getString("REMARKS"), new ArrayList<>());
+        if (connect(database)) {
+            try {
+                List<Table> tables = new ArrayList<>();
+                Map<String, String> tableMap = getSpecifyTableMap(specifyTables);
+                DatabaseMetaData databaseMetaData = conn.getMetaData();
+                ResultSet resultSet = databaseMetaData.getTables(database.getName(), null, "%", null);
+                while (resultSet.next()) {
+                    String name = resultSet.getString("TABLE_NAME");
+                    // Check if the table name is specified.
+                    if (tableMap == null || tableMap.containsKey(name)) {
+                        Table table = new Table(name, resultSet.getString("REMARKS"), new ArrayList<>());
 
-                    // Get the columns of the table.
-                    ResultSet columnResultSet = databaseMetaData.getColumns(database.getName(), "%", table.getName(), "%");
-                    while (columnResultSet.next()) {
-                        Column column = new Column(
-                            columnResultSet.getString("COLUMN_NAME"),
-                            columnResultSet.getString("TYPE_NAME"),
-                            columnResultSet.getInt("COLUMN_SIZE"),
-                            columnResultSet.getString("REMARKS")
-                        );
-                        table.getColumns().add(column);
+                        // Get the columns of the table.
+                        ResultSet columnResultSet = databaseMetaData.getColumns(database.getName(), "%", table.getName(), "%");
+                        while (columnResultSet.next()) {
+                            Column column = new Column(
+                                columnResultSet.getString("COLUMN_NAME"),
+                                columnResultSet.getString("TYPE_NAME"),
+                                columnResultSet.getInt("COLUMN_SIZE"),
+                                columnResultSet.getString("REMARKS")
+                            );
+                            table.getColumns().add(column);
+                        }
+
+                        tables.add(table);
                     }
-
-                    tables.add(table);
                 }
+                return tables;
+            } catch (Exception e) {
+                IntellijUtils.errorMsg("Failed to load table from database: " + e.getMessage());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return tables;
+        return null;
     }
 
     @Override

@@ -73,7 +73,6 @@ public class Parser {
      * default author in java doc.
      */
     private static final String DEFAULT_AUTHOR = "m2m generator";
-
     /**
      * default create date in java doc.
      */
@@ -127,10 +126,15 @@ public class Parser {
 
     public void process() throws Exception {
         Config config = loadConfig();
+        if (config.getDatabase() == null) {
+            throw new Exception("The configuration of the database cannot be empty.");
+        }
+
         checkConfig(config);
         IDatabase db = Vars.DATABASE_MAP.get(config.getDatabase().getType());
         List<Table> tables = db.getTables(config.getDatabase(), config.getTables());
-        if (tables.size() > 0) {
+
+        if (tables != null && tables.size() > 0) {
             List<ClassInfo> classInfos = merge(tables, config, db);
             for (ClassInfo classInfo : classInfos) {
                 Path path = Paths.get(getClassFilePath(classInfo));
@@ -141,7 +145,7 @@ public class Parser {
 
     private void checkConfig(Config config) {
         if (config.getInfo() == null) {
-            config.setInfo(new Info(DEFAULT_AUTHOR, Vars.exec(DEFAULT_DATE, null)));
+            config.setInfo(new Info(DEFAULT_AUTHOR, Vars.exec(DEFAULT_DATE, Vars.DEFAULT_DATE_FORMAT)));
         } else {
             if (config.getInfo().getAuthor() == null || config.getInfo().getAuthor().trim().length() == 0) {
                 config.getInfo().setAuthor(DEFAULT_AUTHOR);
