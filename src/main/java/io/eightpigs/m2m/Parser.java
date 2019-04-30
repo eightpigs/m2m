@@ -352,8 +352,11 @@ public class Parser {
      * @return Indented string
      */
     private String indent(Config config) {
-        if (Vars.INDENT_STYLES.containsKey(config.getStyle().getIndentStyle())) {
-            return Vars.INDENT_STYLES.get(config.getStyle().getIndentStyle()).apply(config.getStyle().getIndent());
+        if (config.getStyle() != null && config.getStyle().getIndentStyle() != null) {
+            String indentStyle = config.getStyle().getIndentStyle().trim();
+            if (Vars.INDENT_STYLES.containsKey(indentStyle)) {
+                return Vars.INDENT_STYLES.get(indentStyle).apply(config.getStyle().getIndent());
+            }
         }
         return Vars.INDENT_STYLES.get("space").apply(4);
     }

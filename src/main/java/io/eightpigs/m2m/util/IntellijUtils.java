@@ -22,7 +22,7 @@ public class IntellijUtils {
     }
 
     public static void message(String str) {
-        notification.setIcon(AllIcons.General.Balloon);
+        notification.setIcon(AllIcons.General.Information);
         notification.setContent(str);
         Notifications.Bus.notify(notification);
     }
