@@ -24,9 +24,12 @@ m2m 是一个可以通过配置文件定制化生成数据库表到具体实体�
 
 ## 使用
 
-配置文件名为: **.m2m.yaml**，该配置文件存在放项目的根目录（与README.md处于同级）。
-
-快捷键:  **Ctrl + Shift + Alt + Meta(Win) + 加号**
+1. [下载插件](https://github.com/eightpigs/m2m/releases)（插件正在审核中，无法从插件仓库直接安装）
+2. Intellij - Plugins - Install Plugin from Disk
+3. 项目根目录创建配置文件： **.m2m.yaml**
+4. 执行生成
+    - 使用快捷键:  **Ctrl + Shift + Alt + Meta(Win) + 加号**
+    - Ctrl+Shift+A 搜索 m2m 
 
 ### 最简单的配置示例
 
